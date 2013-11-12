@@ -1,0 +1,47 @@
+# All commands was performed on site www.nitrous.io
+
+# Install AngularJS generator (this will automatically install Yeoman, Grunt and Bower)
+npm install -g generator-angular
+
+# Change directory to current project directory
+cd my-project-folder
+ 
+# Scaffold out a AngularJS project
+yo angular
+
+# create model/collection/view
+yo angular:controller myController
+yo angular:directive myDirective
+yo angular:filter myFilter
+yo angular:service myService
+ 
+# Search for a dependency in the Bower registry.
+bower search <dep>
+
+# Install one or more dependencies.
+bower install --save <dep>..<depN>
+
+# List out the dependencies you have installed for a project.
+bower list
+
+# Update a dependency to the latest version available.
+bower update <dep>
+
+clear
+
+# If you're using RequireJS...
+grunt bower
+> Injects your Bower dependencies into your RequireJS configuration.
+
+# If you're not using RequireJS...
+grunt bower-install
+> Injects your dependencies into your index.html file.
+
+# Preview an app you have generated (with Livereload).
+grunt serve
+
+# Run the unit tests for an app.
+grunt test
+
+# Build an optimized, production-ready version of your app.
+grunt
