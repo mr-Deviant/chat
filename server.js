@@ -1,43 +1,42 @@
 /**
 * Module dependencies.
 */
-var express = require('express');
+var express  = require('express'),
+	mongoose = require('mongoose');
 
 var app = express();
 
 app.set('env', 'development'); // By default set to 'development'
 
-app.configure('development', function(){
+app.configure('development', function() {
 	// Set server port
 	app.set('port', process.env.PORT || 3000);
 	// Set views folder path
-	app.set('views', __dirname + '/app/views');
-	// Register ejs as .html. If we did
-// not call this, we would need to
-// name our views foo.ejs instead
-// of foo.html. The __express method
-// is simply a function that engines
-// use to hook into the Express view
-// system by default, so if we want
-// to change "foo.ejs" to "foo.html"
-// we simply pass _any_ function, in this
-// case `ejs.__express`.
-	app.engine('.html', require('ejs').__express);
-	// Set EJS as server templating system
-	// Without this you would need to
-// supply the extension to res.render()
-// ex: res.render('users.html').
+	app.set('views', __dirname + '/views');
+	// Set EJS as server templating system. Now we may not specify extension in res.render()
 	app.set('view engine', 'html');
+	// Register ejs as .html. Now we must name our views example.html instead of example.ejs
+	app.engine('.html', require('ejs').__express);
+	// Specify which folder NodeJs won't handle
+	app.use(express.static(__dirname + '/app'));
 
-	
-	
-
-	//app.use(express.static(__dirname + '/app'));
 	// app.use(express.compress());
 });
 
+// Perform user registration
+app.post('/register', function (req, res) {
+	var User = require(__dirname + '/models/user');
+	
+	// Insert user into DB
+
+});
+
+
 app.get('/login', function (req, res) {
-    res.render('login');
+	var User = require(__dirname + '/models/user');
+
+	// Perform user login
+
 });
 
 
@@ -77,3 +76,15 @@ app.get('/test/:id', function(req, res) {
 app.listen(app.get('port'));
 
 console.log('Server running at http://localhost:3000');
+
+
+
+// var mongoose = require('mongoose');
+// // This setting only for local site
+// mongoose.connect('mongodb://localhost/chat');
+
+// var db = mongoose.connection;
+// db.on('error', console.error.bind(console, 'connection error:'));
+// db.once('open', function callback () {
+	
+// });

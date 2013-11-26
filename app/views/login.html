@@ -1,5 +1,23 @@
-<% include header.html %>
-<p>This is the login view.</p>
-<input type="text" name="login">
-<input type="password" name="password">
-<% include footer.html %>
+<div class="row">
+	<div class="col-md-6 col-md-offset-3">
+	<form name="loginForm" role="form" novalidate>
+		<h2>Вход</h2>
+		<div class="form-group">
+			<label for="user-login">Логин:</label>
+			<input type="text" class="form-control input-lg" name="userLogin" id="user-login" placeholder="Логин" data-ng-model="user.login" data-ng-minlength="3" data-ng-maxlength="25" required autofocus>
+			<small class="text-danger" data-ng-show="loginForm.userLogin.$error.required">Пожалуйства введите логин</small>
+			<small class="text-danger" data-ng-show="loginForm.userLogin.$error.minlength">Логин должен содержать как минимум 3 символа</small>
+			<small class="text-danger" data-ng-show="loginForm.userLogin.$error.maxlength">Логин должен содержать максимум 25 символов</small>
+		</div>
+		<div class="form-group">
+			<label for="user-password">Пароль:</label>
+			<input type="password" class="form-control input-lg" name="userPassword" id="user-password" placeholder="Пароль" data-ng-model="user.password" data-ng-minlength="5" required>
+			<small class="text-danger" data-ng-show="loginForm.userPassword.$error.required">Пожалуйства введите логин</small>
+			<small class="text-danger" data-ng-show="loginForm.userPassword.$error.minlength">Логин должен содержать как минимум 5 символов</small>
+		</div>
+		<button type="submit" class="btn btn-primary">Войти</button>
+		<a href="#/register" class="btn btn-default pull-right">Зарегистрироваться</a>
+	</form>
+	</div>
+</div>
+</style>
