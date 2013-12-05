@@ -25,10 +25,27 @@ app.configure('development', function() {
 
 // Perform user registration
 app.post('/register', function (req, res) {
-	var User = require(__dirname + '/models/user');
-	
-	// Insert user into DB
+	// This setting only for local site
+	mongoose.connect('mongodb://localhost/chat');
 
+	var db = mongoose.connection;
+	db.on('error', console.error.bind(console, 'connection error:'));
+	db.once('open', function callback () {
+		var User = require(__dirname + '/models/user');
+
+		// Insert user into DB
+		new User({
+			_id: 1,
+			login: 'login',
+			password: 'password',
+			email: 'mail@email.com',
+			gender: 1,
+			registerDate: new Date(),
+			ip: req.ip
+		});
+	});
+
+	res.send({'success': '1'});
 });
 
 
