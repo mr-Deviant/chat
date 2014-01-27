@@ -1,3 +1,5 @@
+net start MongoDB
+
 # All commands was performed on site www.nitrous.io
 
 # Install AngularJS generator (this will automatically install Yeoman, Grunt and Bower)
