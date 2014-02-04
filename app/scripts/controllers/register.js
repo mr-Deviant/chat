@@ -19,10 +19,22 @@ angular.module('chatApp')
 			$http({
 				method : 'POST',
 				url    : '/register',
-				data   : 'login=' + $scope.user.login + '&email=' + $scope.user.email,
+				data   : {
+					'login'   : $scope.user.login,
+					'password': $scope.user.password,
+					'email'   : $scope.user.email,
+					'gender'  : $scope.user.gender
+				}
 				// headers: {
 				//     'Content-Type': 'application/x-www-form-urlencoded'
 				// }
+			}).
+			success(function(data, status, headers, config) {
+				console.log('success');
+			}).
+			error(function(data, status, headers, config) {
+				error.log('error');
 			});
+		
 		};
  	});

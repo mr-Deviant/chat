@@ -1,27 +1,19 @@
 <div class="row">
 	<div class="col-md-6 col-md-offset-3">
-	<form name="loginForm" role="form" data-ng-submit="register(loginForm)" novalidate>
+	<form name="registerForm" role="form" data-ng-submit="register(registerForm)" novalidate>
 		<h2>Регистрация</h2>
-		<div class="form-group">
-			<label for="user-login">Логин:*</label>
-			<input type="text" class="form-control input-lg" name="userLogin" id="user-login" placeholder="Логин" data-ng-model="user.login" data-ng-minlength="3" data-ng-maxlength="25" required autofocus>
-			<small class="text-danger" data-ng-show="submitted && loginForm.userLogin.$error.required">Пожалуйства введите логин</small>
-			<small class="text-danger" data-ng-show="submitted && loginForm.userLogin.$error.minlength">Логин дожен содержать как минимум 3 символа</small>
-			<small class="text-danger" data-ng-show="loginForm.userLogin.$error.maxlength">Логин должен содержать максимум 25 символов</small>
+
+    	<ng-include src="'views/includes/login-fields.html'" onload="formName=registerForm"></ng-include>
+
+		<div class="form-group" data-ng-class="{'has-error' : submitted && registerForm.userEmail.$invalid}">
+			<label for="user-email">E-mail:</label>
+			<input type="text" class="form-control input-lg" name="userEmail" id="user-email" placeholder="E-mail" required
+				data-ng-model="user.email">
+			<small class="text-danger" data-ng-show="submitted && registerForm.userEmail.$error.required">Пожалуйства введите e-mail</small>
 		</div>
+
 		<div class="form-group">
-			<label for="user-password">Пароль:*</label>
-			<input type="password" class="form-control input-lg" name="userPassword" id="user-password" placeholder="Пароль" data-ng-model="user.password" data-ng-minlength="5" required>
-			<small class="text-danger" data-ng-show="submitted && loginForm.userPassword.$error.required">Пожалуйства введите логин</small>
-			<small class="text-danger" data-ng-show="submitted && loginForm.userPassword.$error.minlength">Логин должен содержать как минимум 5 символов</small>
-		</div>
-		<div class="form-group">
-			<label for="user-email">E-mail:*</label>
-			<input type="text" class="form-control input-lg" name="userEmail" id="user-email" placeholder="E-mail" data-ng-model="user.email" required>
-			<small class="text-danger" data-ng-show="submitted && loginForm.userEmail.$error.required">Пожалуйства введите e-mail</small>
-		</div>
-		<div>
-			<label>Пол:*</label><br>
+			<label>Пол:</label><br>
 			<div class="radio-inline">
 				<input type="radio" name="userGender" id="user-gender-male" value="1" checked>
 				<label for="user-gender-male">Мужской</label>
@@ -31,6 +23,7 @@
 				<label for="user-gender-female">Женский</label>
 			</div>
 		</div>
+
 		<button type="submit" class="btn btn-primary">Зарегистрироваться</button>
 		<a href="#/login" class="btn btn-default pull-right">Войти</a>
 	</form>
