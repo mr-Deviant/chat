@@ -2,7 +2,8 @@
 * Module dependencies.
 */
 var express  = require('express'),
-	mongoose = require('mongoose');
+	mongoose = require('mongoose'),
+	crypto   = require('crypto');
 
 var app = express();
 
@@ -53,20 +54,25 @@ app.configure('development', function() {
 // Perform user registration
 app.post('/register', function (req, res) {
 	var User = require(__dirname + '/models/user');
-	var result = {'success': 0, 'msg': ''};
+	var result = {'success': 0};
 
 	// Check if such user are not exists
 	User.findOne({login: req.body.login}, function(err, docs) {
 		if (err) {
-			console.log(err);
+			console.error('Could\'nt check if user exists: ' + err);
+			res.send(result);
 		} else {
 			if (!docs) {
 				// Insert user into DB
+				var salt = Math.round(new Date().valueOf() * Math.random()) + ''
+					hashPassword = crypto.createHash('sha512')
+						.update(salt + req.body.password)
+						.digest('hex');
+
 				var userObj = new User({
-					id: 1,
 					login: req.body.login,
-					password: req.body.password,
-					salt: '12345',
+					password: hashPassword,
+					salt: salt,
 					email: req.body.email,
 					gender: req.body.gender,
 					registerDate: new Date(),
@@ -74,21 +80,22 @@ app.post('/register', function (req, res) {
 				});
 
 				userObj.save(function(err, data) {
-					result.msg = 'Save';
 					if (err) {
-						err.log(err);
+						console.error('Could\'nt add new user: ' + err);
+						res.send(result);
 					} else {
 						console.log(data);
+						result.success = 1;
+						res.send(result);
 					}
 				});
 			} else {
 				// Such user already exists
 				result.msg = 'Such user already exists';
+				res.send(result);
 			}
 		}
-	});			
-
-	res.send(result);
+	});
 });
 
 

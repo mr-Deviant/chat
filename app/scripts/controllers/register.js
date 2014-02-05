@@ -30,10 +30,10 @@ angular.module('chatApp')
 				// }
 			}).
 			success(function(data, status, headers, config) {
-				console.log('success');
+				console.log(data.success);
 			}).
 			error(function(data, status, headers, config) {
-				error.log('error');
+				console.error('Could\'nt send register request');
 			});
 		
 		};
