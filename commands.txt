@@ -54,7 +54,7 @@ grunt
 git clone http://.....
 
 Потом можно чтото поменять и закомитить себе в свою локальную историю изминения:
-git commit -am "My changes..."
+git commit -am "Last changes"
 
 После этого нужно запихнуть на эталонный сервер командой
 git push

@@ -60,7 +60,6 @@ app.post('/register', function (req, res) {
 	User.findOne({login: req.body.login}, function(err, docs) {
 		if (err) {
 			console.error('Could\'nt check if user exists: ' + err);
-			res.send(result);
 		} else {
 			if (!docs) {
 				// Insert user into DB
@@ -82,18 +81,16 @@ app.post('/register', function (req, res) {
 				userObj.save(function(err, data) {
 					if (err) {
 						console.error('Could\'nt add new user: ' + err);
-						res.send(result);
 					} else {
-						console.log(data);
 						result.success = 1;
-						res.send(result);
 					}
+					res.send(result);
 				});
 			} else {
 				// Such user already exists
-				result.msg = 'Such user already exists';
-				res.send(result);
+				//result.msg = 'USER_EXISTS';
 			}
+			res.send(result);
 		}
 	});
 });
@@ -101,9 +98,31 @@ app.post('/register', function (req, res) {
 
 app.post('/login', function (req, res) {
 	var User = require(__dirname + '/models/user');
+	var result = {'success': 0};
 
-	// Perform user login
-	res.send({'success': '1'});
+	// Check if such user exists
+	User.findOne({login: req.body.login}, function(err, doc) {
+		if (err) {
+			console.error('Could\'nt check if user exists: ' + err);
+		} else {
+			if (!doc) {
+				// Such user aren't exists
+				result.msg = 'USER_NOT_EXISTS';
+			} else {
+				// Check user password
+				var hashPassword = crypto.createHash('sha512')
+						.update(doc.salt + req.body.password)
+						.digest('hex');
+
+				if (hashPassword === doc.password) {
+					result.success = 1;
+				} else {
+					result.msg = 'PASSWORD_WRONG';
+				}
+			}
+			res.send(result);
+		}
+	});
 });
 
 

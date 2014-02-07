@@ -1,16 +1,16 @@
 'use strict';
 
 angular.module('chatApp')
- 	.controller('RegisterCtrl', function ($scope, $http) {
+ 	.controller('RegisterCtrl', function ($scope, $http, $location) {
 
  		$scope.user = {};
 
 		$scope.register = function(form) {
 		
-			// Trigger validation flag.
+			// Trigger validation flag
 			$scope.submitted = true;
 
-			// If form is invalid, return and let AngularJS show validation errors.
+			// If form is invalid, return and let AngularJS show validation errors
 			if (form.$invalid) {
 				return;
 			}
@@ -25,16 +25,22 @@ angular.module('chatApp')
 					'email'   : $scope.user.email,
 					'gender'  : $scope.user.gender
 				}
-				// headers: {
-				//     'Content-Type': 'application/x-www-form-urlencoded'
-				// }
 			}).
 			success(function(data, status, headers, config) {
-				console.log(data.success);
+				if (data.success) {
+					// User succesfully register, redirect to chat
+					$location.path('/chat');
+				} else {
+					// User wasn't registered, show error
+					switch(data.msg) {
+						case 'USER_EXISTS':
+							form.userLogin.$setValidity('exists', false);
+							break;
+					}
+				}
 			}).
 			error(function(data, status, headers, config) {
 				console.error('Could\'nt send register request');
 			});
-		
 		};
  	});
