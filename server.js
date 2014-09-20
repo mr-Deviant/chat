@@ -1,8 +1,7 @@
 /**
 * Module dependencies.
 */
-var express  = require('express'),
-	mongoose = require('mongoose');
+var express  = require('express');
 
 var app = express();
 
@@ -33,8 +32,8 @@ app.post('/register', function (req, res) {
 	db.once('open', function callback () {
 		var User = require(__dirname + '/models/user');
 
-		// Insert user into DB
-		new User({
+		// Insert new user into DB
+		User.insert({
 			_id: 1,
 			login: 'login',
 			password: 'password',
