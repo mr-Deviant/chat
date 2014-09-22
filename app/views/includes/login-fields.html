@@ -1,0 +1,22 @@
+		<div class="form-group" data-ng-class="{'has-error' : submitted && formName.userLogin.$invalid}">
+			<label for="user-login">Логин:</label>
+			<input type="text" class="form-control input-lg" name="userLogin" id="user-login" placeholder="Логин" required autofocus
+				data-ng-model="user.login"
+				data-ng-minlength="3"
+				data-ng-maxlength="25">
+			<small class="text-danger" data-ng-show="submitted && formName.userLogin.$error.required">Пожалуйства введите логин</small>
+			<small class="text-danger" data-ng-show="submitted && formName.userLogin.$error.minlength">Логин дожен содержать как минимум 3 символа</small>
+			<small class="text-danger" data-ng-show="formName.userLogin.$error.maxlength">Логин может содержать максимум 25 символов</small>
+			<small class="text-danger" data-ng-show="formName.userLogin.$error.exists">Такой логин уже используется</small>
+			<small class="text-danger" data-ng-show="formName.userLogin.$error.notExists">Такой логин не существует</small>
+		</div>
+
+		<div class="form-group" data-ng-class="{'has-error' : submitted && formName.userPassword.$invalid}">
+			<label for="user-password">Пароль:</label>
+			<input type="password" class="form-control input-lg" name="userPassword" id="user-password" placeholder="Пароль" required
+				data-ng-model="user.password"
+				data-ng-minlength="5">
+			<small class="text-danger" data-ng-show="submitted && formName.userPassword.$error.required">Пожалуйства введите логин</small>
+			<small class="text-danger" data-ng-show="submitted && formName.userPassword.$error.minlength">Логин должен содержать как минимум 5 символов</small>
+			<small class="text-danger" data-ng-show="formName.userPassword.$error.passwordWrong">Пароль не правильный</small>
+		</div>

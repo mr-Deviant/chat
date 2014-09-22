@@ -1,7 +1,9 @@
 /**
 * Module dependencies.
 */
-var express  = require('express');
+var express  = require('express'),
+	mongoose = require('mongoose'),
+	crypto   = require('crypto');
 
 var app = express();
 
@@ -18,41 +20,109 @@ app.configure('development', function() {
 	app.engine('.html', require('ejs').__express);
 	// Specify which folder NodeJs won't handle
 	app.use(express.static(__dirname + '/app'));
+	// Repacement for depricated express.bodyParser()
+	app.use(express.json());
+	app.use(express.urlencoded());
+	// app.use(express.multipart()); - Depricated, but without it images upload won't work (or we can use other tool app.use(require('connect-multipart')()))
 
 	// app.use(express.compress());
+
+	// Connect to DB (local connection)
+	mongoose.connect('mongodb://localhost/ChatDB');
+	// Connection events
+	// When successfully connected
+	mongoose.connection.on('connected', function () {
+	  console.log('Connected to Mongoose');
+	});
+	// If the connection throws an error
+	mongoose.connection.on('error', function (err) {
+	  error.log('Could not connect to Mongoose: ' + err);
+	});
+	// When the connection is disconnected
+	mongoose.connection.on('disconnected', function () {
+	  console.log('Disconnected from Mongoose');
+	});
+	// If the Node process ends, close the Mongoose connection
+	process.on('SIGINT', function() {
+		mongoose.connection.close(function () {
+			console.log('Mongoose default connection disconnected through app termination');
+			process.exit(0);
+		});
+	});
 });
 
 // Perform user registration
 app.post('/register', function (req, res) {
-	// This setting only for local site
-	mongoose.connect('mongodb://localhost/chat');
+	var User = require(__dirname + '/models/user');
+	var result = {'success': 0};
 
-	var db = mongoose.connection;
-	db.on('error', console.error.bind(console, 'connection error:'));
-	db.once('open', function callback () {
-		var User = require(__dirname + '/models/user');
+	// Check if such user are not exists
+	User.findOne({login: req.body.login}, function(err, docs) {
+		if (err) {
+			console.error('Could\'nt check if user exists: ' + err);
+		} else {
+			if (!docs) {
+				// Insert user into DB
+				var salt = Math.round(new Date().valueOf() * Math.random()) + ''
+					hashPassword = crypto.createHash('sha512')
+						.update(salt + req.body.password)
+						.digest('hex');
 
-		// Insert new user into DB
-		User.insert({
-			_id: 1,
-			login: 'login',
-			password: 'password',
-			email: 'mail@email.com',
-			gender: 1,
-			registerDate: new Date(),
-			ip: req.ip
-		});
+				var userObj = new User({
+					login: req.body.login,
+					password: hashPassword,
+					salt: salt,
+					email: req.body.email,
+					gender: req.body.gender,
+					registerDate: new Date(),
+					ip: req.ip
+				});
+
+				userObj.save(function(err, data) {
+					if (err) {
+						console.error('Could\'nt add new user: ' + err);
+					} else {
+						result.success = 1;
+					}
+					res.send(result);
+				});
+			} else {
+				// Such user already exists
+				//result.msg = 'USER_EXISTS';
+			}
+			res.send(result);
+		}
 	});
-
-	res.send({'success': '1'});
 });
 
 
-app.get('/login', function (req, res) {
+app.post('/login', function (req, res) {
 	var User = require(__dirname + '/models/user');
+	var result = {'success': 0};
 
-	// Perform user login
+	// Check if such user exists
+	User.findOne({login: req.body.login}, function(err, doc) {
+		if (err) {
+			console.error('Could\'nt check if user exists: ' + err);
+		} else {
+			if (!doc) {
+				// Such user aren't exists
+				result.msg = 'USER_NOT_EXISTS';
+			} else {
+				// Check user password
+				var hashPassword = crypto.createHash('sha512')
+						.update(doc.salt + req.body.password)
+						.digest('hex');
 
+				if (hashPassword === doc.password) {
+					result.success = 1;
+				} else {
+					result.msg = 'PASSWORD_WRONG';
+				}
+			}
+			res.send(result);
+		}
+	});
 });
 
 
