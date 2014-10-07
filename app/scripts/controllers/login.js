@@ -48,14 +48,3 @@ angular.module('chatApp')
 			});
 		};
 	});
-
-
-if (data.success) {
-					// User succesfully register, redirect to chat
-					$location.path('/chat');
-				} else {
-					// User wasn't registered, show error
-					if (data.msg === 'USER_EXISTS') {
-						form.userLogin.$setValidity('exists', false);
-					}
-				}

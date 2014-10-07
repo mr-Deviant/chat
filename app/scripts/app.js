@@ -9,10 +9,8 @@
  * Main module of the application.
  */
 angular
-  .module('chatApp', [
-    'ngRoute'
-  ])
-  .config(function ($routeProvider) {
+  .module('chatApp', ['ngRoute'])
+  .config(['$routeProvider', function ($routeProvider) {
     $routeProvider
       .when('/', {
         templateUrl: 'views/chat.html',
@@ -29,4 +27,4 @@ angular
       .otherwise({
         redirectTo: '/'
       });
-  });
+  }]);
