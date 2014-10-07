@@ -18,7 +18,7 @@ angular.module('chatApp')
 			// Submit form to server
 			$http({
 				method : 'POST',
-				url    : '/register',
+				url    : 'http://localhost:3000/register',
 				data   : {
 					'login'   : $scope.user.login,
 					'password': $scope.user.password,

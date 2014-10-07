@@ -4,8 +4,9 @@ var UserSchema = new mongoose.Schema({
 	_id: String,
 	login: {type: String, unique: true, required: true},
 	password: String,
+	salt: String,
 	email: String,
-	gender: 1,
+	gender: Boolean,
 	registerDate: String,
 	ip: String
 });

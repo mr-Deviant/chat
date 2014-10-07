@@ -1,86 +1,56 @@
-Usefull information
-===
+# How to make chat work
 
-### Yeoman
+1. Install [Node.js](http://nodejs.org) (also would be installed package manager NPM)
 
-Install AngularJS generator (this will automatically install Yeoman, Grunt and Bower)
+2. Install [MongoDB](http://www.mongodb.org/downloads)
+
+3. Register MongoDB as Windows server (all folders & config file should be created):
+`"C:\MongoDB\bin\mongod.exe" --config "C:\MongoDB\mongodb.conf" --install`
+
+4. Install [Git](http://git-scm.com) (check option "Use Git from Windows Command Prompt" during install)
+
+5. Install [Ruby](http://rubyinstaller.org) (check option "Add to system PATH" during install)
+
+6. Install console utility Grunt via NPM (-g mean install globally):
+`npm install grunt-cli -g`
+
+7. Install Bower:
+`npm install -g bower`
+
+8. Install Yeoman (only for developers):
+`npm install -g yo`
+
+9. Install AngularJS generator (only for developers):
 `npm install -g generator-angular`
 
-Change directory to current project directory
-`cd my-project-folder`
- 
-Scaffold out a AngularJS project
-`yo angular`
+10. Install Forevo for running scrips continuously (for production):
+`npm install forever -g`
 
-create Angular controller/directive/filter/service
-`yo angular:controller myController`
-`yo angular:directive myDirective`
-`yo angular:filter myFilter`
-`yo angular:service myService`
+Or install Nodemon (for development):
+`npm install -g nodemon`
 
-### Bower
+11. Instal Ruby Gems (including SASS):
+`gem update --system`
 
-Search for a dependency in the Bower registry.
-`bower search <dep>`
+12. Install Compass:
+`gem install compass --pre`
 
-Install one or more dependencies
-`bower install --save <dep>..<depN>`
+13. Go to project folder
 
-List out the dependencies you have installed for a project
-`bower list`
+14. Install frontend libraries:
+`bower install`
 
-Update a dependency to the latest version available
-`bower update <dep>`
+15. Install backend libraries:
+`npm install`
 
-### Grunt
+16. Run MongoDB (for Windows, if MongoDB is installed as a service):
+`net start MongoDB`
 
-Injects your Bower dependencies into your RequireJS configuration (if you're using RequireJS)
-`grunt bower`
+17. Run NodeJS server on production environment (better to use PM2 module, but it doesn't support Windows platform):
+`set NODE_ENV=production && forever start -l forever.log -o out.log -e error.log -a -c node server.js`
 
-Injects your dependencies into your index.html file (if you're not using RequireJS)
-`grunt bower-install`
+Or run NodeJS server on developement environment (we can't use Forever because watch task restarts server without "node" command what cause error on Windows platform):
+`nodemon -e js --ignore app/ server.js`
 
-Preview an app you have generated (with Livereload).
+18. Preview chat:
 `grunt serve`
-
-Run the unit tests for an app.
-`grunt test`
-
-Build an optimized, production-ready version of your app.
-`grunt`
-
-### GIT
-
-https://www.atlassian.com/git/tutorial/git-basics
-https://www.kernel.org/pub/software/scm/git/docs/
-
-git init <directory> - transform directory into a Git repository
-
-git clone <repo> <directory> - clone the repository located at <repo> into the folder called <directory> on the local machine
-
-
-Чтобы вытащить копию репозитории нужно сделать так:
-git clone http://.....
-
-Потом можно чтото поменять и закомитить себе в свою локальную историю изминения:
-git commit -am "Last changes"
-
-После этого нужно запихнуть на эталонный сервер командой
-git push
-
-Чтобы стянуть чьи-то изменения
-git pull
-
-Чтобы посмотреть список измененных файлов
-git status
-
-Чтобы посмотреть что конкретно было изменено
-git diff
-
-Чтобы отревертить измененный файл
-git checkout путь/к/файлу
-
-
-
-
-Github README.md syntax https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet
