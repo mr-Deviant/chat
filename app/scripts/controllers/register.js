@@ -10,6 +10,9 @@ angular.module('chatApp')
 			// Trigger validation flag
 			$scope.submitted = true;
 
+			// Reset previously seted errors
+			form.userLogin.$setValidity('exists', true);
+
 			// If form is invalid, return and let AngularJS show validation errors
 			if (form.$invalid) {
 				return;

@@ -1,7 +1,7 @@
-var mongoose = require('mongoose');
+var mongoose = require('mongoose'),
+	async    = require('async');
 
-var UserSchema = new mongoose.Schema({
-	_id: String,
+var userSchema = mongoose.Schema({
 	login: {type: String, unique: true, required: true},
 	password: String,
 	salt: String,
@@ -11,4 +11,10 @@ var UserSchema = new mongoose.Schema({
 	ip: String
 });
 
-module.exports = UserSchema;
+userSchema.methods.register = function (cb) {
+	//return this.model('User').find({ type: this.type }, cb);
+}
+
+var UserModel = mongoose.model('User', userSchema);
+
+module.exports = UserModel;

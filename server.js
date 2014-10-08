@@ -83,10 +83,11 @@ app.post('/register', function (req, res) {
 	User.findOne({login: req.body.login}, function(err, docs) {
 		if (err) {
 			console.error('Could\'nt check if user exists: ' + err);
+			result.msg = 'COULD_NOT_CHECK_IF_USER_EXISTS';
 		} else {
 			if (!docs) {
 				// Insert user into DB
-				var salt = Math.round(new Date().valueOf() * Math.random()) + ''
+				var salt = Math.round(new Date().valueOf() * Math.random()) + '',
 					hashPassword = crypto.createHash('sha512')
 						.update(salt + req.body.password)
 						.digest('hex');
@@ -104,16 +105,20 @@ app.post('/register', function (req, res) {
 				userObj.save(function(err, data) {
 					if (err) {
 						console.error('Could\'nt add new user: ' + err);
+						result.msg = 'COULD_NOT_ADD_USER';
 					} else {
 						result.success = 1;
+						result.msg = 'USER_ADDED';
 					}
 					res.send(result);
+					res.end();
 				});
 			} else {
 				// Such user already exists
-				//result.msg = 'USER_EXISTS';
+				result.msg = 'USER_EXISTS';
 			}
 			res.send(result);
+			res.end();
 		}
 	});
 });

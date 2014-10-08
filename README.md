@@ -54,3 +54,18 @@ Or run NodeJS server on developement environment (we can't use Forever because w
 
 18. Preview chat:
 `grunt serve`
+
+# How to check MongoDB records?
+1. Go to MongoDB installation folder
+
+2. Run MongoDB:
+`bin/mongo`
+
+3. Display list of all tables:
+`show dbs`
+
+4. Tablw which we use:
+`db`
+
+4. Select chat table:
+`use ChatDB`
