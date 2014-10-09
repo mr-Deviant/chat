@@ -11,9 +11,72 @@ var userSchema = mongoose.Schema({
 	ip: String
 });
 
-userSchema.methods.register = function (cb) {
+userSchema.methods.register = function (callback) {
 	//return this.model('User').find({ type: this.type }, cb);
-}
+	try {
+		async.waterfall([
+			function (callback) {
+				isRegistered(username, function (err, result) {
+					callback(err, result);
+				});
+			},
+			function (isRegistered, callback) {
+				if (isRegistered) {
+					addUser(data, function (err, result) {
+						callback(err, result);
+					});
+				}
+			}
+		], function (err, result) {
+			if (err) {
+				console.error('Couldn\'t register user: ' + err);
+				throw err;
+			}
+
+			callback(null, result);
+		});
+	} catch(err) {
+		console.log(err);
+	}
+};
+
+userSchema.methods.isRegistered = function(login, callback) {
+	var result = false;
+
+	this.model('User').findOne({'login': login}, function(err, docs) {
+		if (err) {
+			console.error('Couldn\'t check if user exists: ' + err);
+			callback(err, result);
+		} else {
+			result = !!docs;
+			callback(null, result);
+		}
+	});
+};
+
+userSchema.methods.addUser = function(userData, callback) {
+	var salt = Math.round(new Date().valueOf() * Math.random()) + '',
+		hashPassword = crypto.createHash('sha512')
+			.update(salt + data.password)
+			.digest('hex');
+
+	data.salt = salt;
+	data.registerDate = new Date();
+
+	var userObj = new User(userData);
+
+	userObj.save(function(err, data) {
+		if (err) {
+			console.error('Could\'nt add new user: ' + err);
+			result.msg = 'COULD_NOT_ADD_USER';
+		} else {
+			result.success = 1;
+			result.msg = 'USER_ADDED';
+		}
+		
+		callback(null, result);
+	});
+};
 
 var UserModel = mongoose.model('User', userSchema);
 
