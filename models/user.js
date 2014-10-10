@@ -11,8 +11,7 @@ var userSchema = mongoose.Schema({
 	ip: String
 });
 
-userSchema.methods.register = function (callback) {
-	//return this.model('User').find({ type: this.type }, cb);
+userSchema.methods.register = function (userData, callback) {
 	try {
 		async.waterfall([
 			function (callback) {
@@ -22,7 +21,7 @@ userSchema.methods.register = function (callback) {
 			},
 			function (isRegistered, callback) {
 				if (isRegistered) {
-					addUser(data, function (err, result) {
+					addUser(userData, function (err, result) {
 						callback(err, result);
 					});
 				}
@@ -41,15 +40,12 @@ userSchema.methods.register = function (callback) {
 };
 
 userSchema.methods.isRegistered = function(login, callback) {
-	var result = false;
-
 	this.model('User').findOne({'login': login}, function(err, docs) {
 		if (err) {
 			console.error('Couldn\'t check if user exists: ' + err);
-			callback(err, result);
+			callback(err, false);
 		} else {
-			result = !!docs;
-			callback(null, result);
+			callback(null, !!docs);
 		}
 	});
 };
