@@ -11,66 +11,85 @@ var userSchema = mongoose.Schema({
 	ip: String
 });
 
-userSchema.methods.register = function (userData, callback) {
-	try {
+userSchema.statics.register = function (req, callback) {
+	// try {
+		var res = {
+			success: 0
+		};
+
 		async.waterfall([
 			function (callback) {
-				isRegistered(username, function (err, result) {
-					callback(err, result);
+				isRegistered(req.body.login, result, function (err, result) {
+					if (!err && !result) {
+						res.msg = 'USER_EXISTS';
+					}
+					
+					return callback(err, result);
 				});
 			},
 			function (isRegistered, callback) {
 				if (isRegistered) {
-					addUser(userData, function (err, result) {
-						callback(err, result);
+					addUser(req, result, function (err, result) {
+						return callback(err, result);
 					});
 				}
 			}
 		], function (err, result) {
 			if (err) {
-				console.error('Couldn\'t register user: ' + err);
-				throw err;
+				return callback(err);
 			}
 
-			callback(null, result);
+			res.success = 1;
+
+			return callback(null, res);
 		});
-	} catch(err) {
-		console.log(err);
-	}
+	// } catch(err) {
+	// 	console.error(err);
+	// }
 };
 
-userSchema.methods.isRegistered = function(login, callback) {
+userSchema.statics.isRegistered = function(login, callback, result, msg) {
 	this.model('User').findOne({'login': login}, function(err, docs) {
 		if (err) {
 			console.error('Couldn\'t check if user exists: ' + err);
-			callback(err, false);
-		} else {
-			callback(null, !!docs);
+			return callback(err);
 		}
+
+		var isRegistered = !!docs;
+		result = result && isRegistered;
+		
+		msg = isRegistered ? 'USER_ADDED' : 'USER_EXISTS';
+		
+		return callback(null, result, msg);
+		
 	});
 };
 
-userSchema.methods.addUser = function(userData, callback) {
+userSchema.statics.addUser = function(req, result, callback) {
 	var salt = Math.round(new Date().valueOf() * Math.random()) + '',
 		hashPassword = crypto.createHash('sha512')
-			.update(salt + data.password)
-			.digest('hex');
-
-	data.salt = salt;
-	data.registerDate = new Date();
+			.update(salt + userData.password)
+			.digest('hex'),
+		userData = {
+			login: req.body.login,
+			password: hashPassword,
+			salt: salt,
+			email: req.body.email,
+			gender: req.body.gender,
+			registerDate: new Date(),
+			ip: req.ip
+		};
 
 	var userObj = new User(userData);
 
-	userObj.save(function(err, data) {
+	userObj.save(function(err, userObj) {
 		if (err) {
 			console.error('Could\'nt add new user: ' + err);
-			result.msg = 'COULD_NOT_ADD_USER';
-		} else {
-			result.success = 1;
-			result.msg = 'USER_ADDED';
+			return callback(err);
 		}
-		
-		callback(null, result);
+
+		result.success = result.success && 1;
+		return callback(null, result);
 	});
 };
 
