@@ -5,7 +5,6 @@ var express        = require('express'),
 	bodyParser     = require('body-parser'),
 	methodOverride = require('method-override'),
 	mongoose       = require('mongoose'),
-	crypto         = require('crypto'),
 	app            = express();
 
 app.set('env', 'development'); // By default set to 'development'
@@ -89,31 +88,14 @@ app.post('/register', function (req, res) {
 
 app.post('/login', function (req, res) {
 	var User = require(__dirname + '/models/user');
-	var result = {'success': 0};
-
-	// Check if such user exists
-	User.findOne({login: req.body.login}, function(err, doc) {
-		if (err) {
-			console.error('Could\'nt check if user exists: ' + err);
-		} else {
-			if (!doc) {
-				// Such user aren't exists
-				result.msg = 'USER_NOT_EXISTS';
-			} else {
-				// Check user password
-				var hashPassword = crypto.createHash('sha512')
-						.update(doc.salt + req.body.password)
-						.digest('hex');
-
-				if (hashPassword === doc.password) {
-					result.success = 1;
-				} else {
-					result.msg = 'PASSWORD_WRONG';
-				}
-			}
+	
+	try {
+		User.checkUser(req, function(err, result) {
 			res.send(result);
-		}
-	});
+		})
+	} catch(err) {
+		console.error('Couldn\'t check user: ' + err);
+	}
 });
 
 

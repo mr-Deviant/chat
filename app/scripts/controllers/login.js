@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('chatApp')
-	.controller('LoginCtrl', function ($scope, $http) {
+	.controller('LoginCtrl', function ($scope, $http, $location) {
 		$scope.user = {};
 
 		$scope.login = function(form) {
@@ -21,10 +21,10 @@ angular.module('chatApp')
 			// Submit form to server
 			$http({
 				method : 'POST',
-				url    : '/login',
+				url    : 'http://localhost:3000/login',
 				data   : {
-					'login': $scope.user.login,
-					'email': $scope.user.email,
+					'login'   : $scope.user.login,
+					'password': $scope.user.password,
 				}
 			}).
 			success(function(data, status, headers, config) {
