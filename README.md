@@ -50,7 +50,7 @@ Or install Nodemon (for development):
 `set NODE_ENV=production && forever start -l forever.log -o out.log -e error.log -a -c node server.js`
 
 Or run NodeJS server on developement environment (we can't use Forever because watch task restarts server without "node" command what cause error on Windows platform):
-`nodemon -e js --ignore app/ server.js`
+`nodemon -e js --ignore app/ server.js > server.log`
 
 18. Preview chat:
 `grunt serve`
