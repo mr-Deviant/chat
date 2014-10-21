@@ -5,14 +5,13 @@ var express        = require('express'),
 	bodyParser     = require('body-parser'),
 	methodOverride = require('method-override'),
 	mongoose       = require('mongoose'),
-	app            = express();
+	app            = express(),
+    server         = app.listen(process.env.PORT || 3000),
+	io             = require('socket.io').listen(server);
+
+console.log('Server running at http://localhost:3000');
 
 app.set('env', 'development'); // By default set to 'development'
-
-//app.set('appPath', __dirname + '/app');
-
-// Set server port
-app.set('port', process.env.PORT || 3000);
 
 // Set views folder path
 app.set('views', __dirname + '/views');
@@ -98,7 +97,13 @@ app.post('/login', function (req, res) {
 	}
 });
 
-
+io.on('connection', function(socket) {
+	console.log('a user connected');
+	socket.emit('message', { message: 'welcome to the chat' });
+    socket.on('send', function (data) {
+        io.sockets.emit('message', data);
+    });
+});
 
 
 
@@ -130,22 +135,4 @@ app.get('/test/:id', function(req, res) {
 // app.get('/', function(req, res) {
 
 //     res.render('index.html');
-// });
-
-
-
-app.listen(app.get('port'));
-
-console.log('Server running at http://localhost:3000');
-
-
-
-// var mongoose = require('mongoose');
-// // This setting only for local site
-// mongoose.connect('mongodb://localhost/chat');
-
-// var db = mongoose.connection;
-// db.on('error', console.error.bind(console, 'connection error:'));
-// db.once('open', function callback () {
-	
 // });

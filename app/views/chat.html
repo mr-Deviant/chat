@@ -6,20 +6,45 @@ a {
 a:hover {
 	color: #ff0000;
 }
+html,
+body,
+.container {
+	height: 100%;
+}
 </style>
-<div class="row">
-	<div class="col-xs-9" style="background-color: grey; float: left; width: 80%;">
+<script>
+	var socket = io('http://localhost:3000');
+
+	socket.on('connect', function(){
+		console.log('connected');
+	});
+
+	socket.on('disconnect', function() {
+		console.log('disconnected');
+	});
+
+	socket.on('message', function (data) {
+		if (data.message) {
+			alert(data.message);
+		}
+	});
+
+	$(document).ready(function() {
+		$('#send').click(function() {
+			socket.emit('send', {message: $('#message').val()});
+		});
+	});
+</script>
+<div class="row" style="height: 100%; position: relative;">
+	<div class="col-xs-9" style="background-color: grey; float: left; width: 75%;">
 		Public
 	</div>
-	<div class="col-xs-3" style="background-color: silver; float: right; width: 20%;">
+	<div class="col-xs-3" style="background-color: silver; float: right; width: 25%;">
 		List
 	</div>
-	<div class="col-xs-9" style="background-color: yellow; float: left; width: 80%;">
-		Private
-	</div>
-	<div class="col-xs-9" style="">
-		<input type="text" name="message" data-ng-model="message">
-		<input type="submit" name="send" value="Send">
+	<div class="col-xs-9" style="height: 70px; position: absolute; bottom: 0; left: 0;">
+		<textarea id="message" name="message" data-ng-model="message" style="height: 50px; width: 100%;"></textarea><br>
+		<input type="submit" id="send" name="send" value="Send">
 	</div>
 </div>
 	
