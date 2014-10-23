@@ -3,8 +3,15 @@ var mongoose = require('mongoose'),
 	crypto   = require('crypto');
 
 var userSchema = mongoose.Schema({
-	login: {type: String, unique: true, required: true},
-	password: String,
+	login: {
+		type: String,
+		unique: true,
+		required: true
+	},
+	password: {
+		type: String,
+		required: true
+	},
 	salt: String,
 	email: String,
 	gender: Boolean,
@@ -14,7 +21,7 @@ var userSchema = mongoose.Schema({
 
 userSchema.statics.register = function (req, callback) {
 	var res = {
-		success: 0
+		success: false
 	};
 
 	async.waterfall([
@@ -33,7 +40,7 @@ userSchema.statics.register = function (req, callback) {
 					callback(err, result);
 				});
 			} else {
-				callback(null, 0);
+				callback(null, false);
 			}
 		}
 	], function (err, result) {
@@ -82,17 +89,17 @@ userSchema.statics.addUser = function(req, callback) {
 
 	userObj.save(function(err, userObj) {
 		if (err) {
-			console.error('Could\'nt add new user: ' + err);
+			console.error('Could\'nt add user: ' + err);
 			return callback(err);
 		}
 
-		return callback(null, 1);
+		return callback(null, true);
 	});
 };
 
 userSchema.statics.checkUser = function(req, callback) {
 	var res = {
-		success: 0
+		success: false
 	};
 
 	// Check if such user exists
@@ -110,7 +117,7 @@ userSchema.statics.checkUser = function(req, callback) {
 						.digest('hex');
 
 				if (hashPassword === doc.password) {
-					res.success = 1;
+					res.success = true;
 				} else {
 					res.msg = 'PASSWORD_WRONG';
 				}
