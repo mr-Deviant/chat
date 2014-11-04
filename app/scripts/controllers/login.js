@@ -24,7 +24,7 @@ angular.module('chatApp')
 				url    : 'http://localhost:3000/login',
 				data   : {
 					'login'   : $scope.user.login,
-					'password': $scope.user.password,
+					'password': $scope.user.password
 				}
 			}).
 			success(function(data, status, headers, config) {

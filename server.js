@@ -1,21 +1,30 @@
 // Module dependencies
 var express        = require('express'),
+	cors           = require('cors'),
 	favicon        = require('serve-favicon'),
 	logger         = require('morgan'),
 	cookieParser   = require('cookie-parser'),
 	bodyParser     = require('body-parser'),
+	// TODO: maybe use tokens instead? https://auth0.com/blog/2014/01/07/angularjs-authentication-with-cookies-vs-token/
 	session        = require('express-session'),
 	methodOverride = require('method-override'),
 	mongoose       = require('mongoose'),
+	MongoStore     = require('connect-mongo')(session),
 	passport       = require('passport'),
 	LocalStrategy  = require('passport-local').Strategy, 
+    settings       = {
+    	serverHost  : 'localhost',
+    	serverPort  : process.env.PORT || 3000,
+    	clientHost  : 'localhost',
+    	clientPort  : 9000,
+    	dbName      : 'ChatDB',
+    	cookieSecret: 'cccchhhaat'
+    },
 	app            = express(),
-    server         = app.listen(process.env.PORT || 3000),
+    server         = app.listen(settings.serverPort),
     io             = require('socket.io').listen(server);
 
-    var crypto   = require('crypto');
-
-console.log('Server running at http://localhost:3000');
+console.log('Server running at http://' + settings.serverHost + ':' + settings.serverPort);
 
 app.set('env', process.env.NODE_ENV.trim() || 'development'); // By default set to 'development'
 
@@ -39,7 +48,7 @@ if ('development' === app.get('env')) {
 	app.use(logger('combined'));
 }
 
-app.use(cookieParser('keyboard cat')); // Need for passport 
+app.use(cookieParser()); // Need for passport 
 
 app.use(bodyParser.urlencoded({extended: true})); // Need for passport
 
@@ -47,15 +56,26 @@ app.use(bodyParser.json());
 
 app.use(methodOverride());
 
+// Enable CORS for all requests
+app.use(cors({
+	// If I allow Access-Control-Allow-Credentials i cant use *
+	origin: 'http://' + settings.clientHost + ':' + settings.clientPort,
+	// Recieve cross domain requests with cookies data
+	credentials: true
+}));
+
 // Need for pasport
 app.use(session({
 	// Session cookie is signed with this secret to prevent tampering
-	secret: 'keyboard cat',
+	secret: settings.cookieSecret,
 	// Forces a session that is "uninitialized" to be saved to the store
 	saveUninitialized: true,
 	// Forces session to be saved even when unmodified
-	resave: true
-	,cookie: {secure: false}//
+	resave: true,
+	// Use MongoDB instead of MemoryStore for storing sessions
+	store: new MongoStore({
+	    db: settings.dbName
+	})
 }));
 
 // Passport
@@ -65,13 +85,8 @@ app.use(passport.session());
 // Specify which folder NodeJS won't handle
 app.use(express.static(__dirname + '/app'));
 
-
-var flash = require('connect-flash');//
-app.use(flash());//
-
-
 // Connect to DB (local connection)
-mongoose.connect('mongodb://localhost/ChatDB');
+mongoose.connect('mongodb://' + settings.serverHost + '/' + settings.dbName);
 // Connection events
 // When successfully connected
 mongoose.connection.on('connected', function() {
@@ -79,7 +94,7 @@ mongoose.connection.on('connected', function() {
 });
 // If the connection throws an error
 mongoose.connection.on('error', function(err) {
-  error.log('Could not connect to Mongoose: ' + err);
+  console.log('Could not connect to Mongoose: ' + err);
 });
 // When the connection is disconnected
 mongoose.connection.on('disconnected', function() {
@@ -94,20 +109,18 @@ process.on('SIGINT', function() {
 });
 
 var User = require(__dirname + '/models/user');
+var crypto   = require('crypto');
 
-// Passport session setup.
-// To support persistent login sessions, Passport needs to be able to
-// serialize users into and deserialize users out of the session. Typically,
-// this will be as simple as storing the user ID when serializing, and finding
-// the user by ID when deserializing.
+// Serialize users into and the session (save user id)
 passport.serializeUser(function(user, callback) {
 	callback(null, user.id);
 });
 
-passport.deserializeUser(function(id, callback) {console.log('!!!deserialize!!!', id);
+// Deserialize users out of the session (find user id)
+passport.deserializeUser(function(id, callback) {
 	User.findById(id, function(err, doc) {
 		if (err) {
-			console.error('Could not deserialize user: ' + err);
+			console.log('Could not deserialize user: ' + err);
 			return callback(err);
 		}
 
@@ -115,85 +128,110 @@ passport.deserializeUser(function(id, callback) {console.log('!!!deserialize!!!'
 	});
 });
 
-// Use the LocalStrategy within Passport.
-// Strategies in passport require a `verify` function, which accept
-// credentials (in this case, a username and password), and invoke a callback
-// with a user object. In the real world, this would query a database;
-// however, in this example we are using a baked-in set of users.
+passport.use('register', new LocalStrategy({
+		usernameField: 'login',
+		passwordField: 'password',
+		passReqToCallback: true
+	}, function(req, login, password, callback) {
+		return User.register(req, callback);
+	}
+));
+
+// Passport login verify function
 passport.use('login', new LocalStrategy({
+		// Names of username & password fields
 		usernameField: 'login',
 		passwordField: 'password'
-	}, function(login, password, callback) {
-		
-			User.findOne({login: login}, function(err, doc) {
-				if (err) {
-					console.error('Could not check if user exists: ' + err);
-					return callback(err);
-				}
+	}, function(login, password, callback) {console.log('login');
+		User.findOne({login: login}, function(err, doc) {
+			if (err) {
+				console.log('Could not check if user exists: ' + err);
+				return callback(err);
+			}
 
-				if (!doc) {
-					return callback(null, false, {message: 'Incorrect login'});
-				}
+			if (!doc) {
+				return callback(null, false, {msg: 'USER_NOT_EXISTS'});
+			}
 
-				var hashPassword = crypto.createHash('sha512')
-					.update(doc.salt + password)
-					.digest('hex');
+			var hashPassword = crypto.createHash('sha512')
+				.update(doc.salt + password)
+				.digest('hex');
 
-				if (doc.password != hashPassword) {
-					return callback(null, false, {message: 'Incorrect password'});
-				}
+			if (doc.password != hashPassword) {
+				return callback(null, false, {msg: 'PASSWORD_WRONG'});
+			}
 
-				return callback(null, doc);
-			});
+			return callback(null, doc);
+		});
 		
 	}
 ));
 
-// passport.use('register', new LocalStrategy({
-// 		usernameField: 'login',
-// 		passwordField: 'password',
-// 		passReqToCallback: true
-// 	},
-// 	function(req, username, password, callback) {
-
-// 	}
-// ));
-
-// Allow cross domain requests (because NodeJS is on different port)
-app.all('/*', function(req, res, next) {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Content-Type,X-Requested-With');
-    next();
-});
-
 // Perform user registration
 app.post('/register', function (req, res) {
-	// var user = require(__dirname + '/models/user');
+	var ret = {
+		ok: 0
+	};
 
-	try {
-		user.register(req, function(err, result) {
-			res.send(result);
-		});
-	} catch(err) {
-		console.error('Could not register user: ' + err);
-	}
+	passport.authenticate('register', function(err, user, info) {
+		if (err) {
+			console.log('Could not register user');
+			res.end(JSON.stringify(ret));
+		} else {
+			if (!user) {
+				if (info && info.msg) { // If error message exists add it into response
+					ret.msg = info.msg;
+				}
+				res.end(JSON.stringify(ret));
+			} else {
+				// Perform user login
+				req.logIn(user, function(err) {
+					if (err) {
+						console.log('Could not perform user login');
+					} else {
+						// Everything went well
+						ret.ok = 1;
+					}
+					res.end(JSON.stringify(ret));
+			    });
+			}
+			// Perform user login
+			ret.ok = !!user ? 1 : 0;
+
+			
+		}
+	})(req, res);
 });
 
-// Perforem user login
-app.post('/login', function(req, res, next) {
-	console.log('-='+req.isAuthenticated()+'=-');
+// Perform user login
+app.post('/login', function(req, res) {
+	var ret = {
+		ok: 0
+	};
+
 	passport.authenticate('login', function(err, user, info) {
-		if (err) { return next(err); }
-    // Redirect if it fails
-    if (!user) { return res.redirect('/login'); }
-    req.login(user, function(err) {
-      if (err) { return next(err); }
-      // Redirect if it succeeds
-      console.log('registered');
-      console.log('-='+req.isAuthenticated()+'=-');
-      res.end('s');
-    });
-	})(req, res, next);
+		if (err) {
+			console.log('Could not check if user exists: ' + err);
+			res.end(JSON.stringify(ret));
+		} else {
+			if (!user) {
+				// Such user is not exists or password is wrong
+	    		ret.msg = info.msg;
+	    		res.end(JSON.stringify(ret));
+	    	} else {
+	    		req.logIn(user, function(err) {
+					if (err) {
+						console.log('Could not perform user login');
+					} else {
+						// Everything went well
+						ret.ok = 1;
+					}
+
+					res.end(JSON.stringify(ret));
+			    });
+	    	}
+		}
+	})(req, res);
 
 
 
@@ -204,7 +242,7 @@ app.post('/login', function(req, res, next) {
 	// 		res.send(result);
 	// 	});
 	// } catch(err) {
-	// 	console.error('Could not check user: ' + err);
+	// 	console.log('Could not check user: ' + err);
 	// }
 });
 
@@ -216,7 +254,7 @@ app.get('/chat', function(req, res) {
 
 app.get('/logout', function(req, res){
 	req.logout();
-	res.redirect('/login');
+	res.end(JSON.stringify({'ok': 1}));
 });
 
 io.on('connect', function(socket) {

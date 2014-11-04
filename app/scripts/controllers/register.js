@@ -43,7 +43,7 @@ angular.module('chatApp')
 				}
 			}).
 			error(function(data, status, headers, config) {
-				console.error('Could\'nt send register request');
+				console.log('Could not send register request');
 			});
 		};
  	});
