@@ -27,8 +27,8 @@ angular.module('chatApp')
 					'password': $scope.user.password
 				}
 			}).
-			success(function(data, status, headers, config) {
-				if (data.success) {
+			success(function(data) {
+				if (data.ok) {
 					// User succesfully login, redirect to chat
 					$location.path('/chat');
 				} else {
@@ -43,8 +43,8 @@ angular.module('chatApp')
 					}
 				}
 			}).
-			error(function(data, status, headers, config) {
-				console.error('Could\'nt send login request');
+			error(function() {
+				console.error('Could not send login request');
 			});
 		};
 	});

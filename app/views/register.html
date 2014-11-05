@@ -15,11 +15,11 @@
 		<div class="form-group">
 			<label>Пол:</label><br>
 			<div class="radio-inline">
-				<input type="radio" name="userGender" id="user-gender-male" value="1" checked>
+				<input type="radio" name="userGender" id="user-gender-male" data-ng-model="user.gender" value="1" checked>
 				<label for="user-gender-male">Мужской</label>
 			</div>
 			<div class="radio-inline">
-				<input type="radio" name="userGender" id="user-gender-female" value="0">
+				<input type="radio" name="userGender" id="user-gender-female" data-ng-model="user.gender" value="0">
 				<label for="user-gender-female">Женский</label>
 			</div>
 		</div>

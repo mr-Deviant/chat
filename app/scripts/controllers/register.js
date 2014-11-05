@@ -29,8 +29,8 @@ angular.module('chatApp')
 					'gender'  : $scope.user.gender
 				}
 			}).
-			success(function(data, status, headers, config) {
-				if (data.success) {
+			success(function(data) {
+				if (data.ok) {
 					// User succesfully register, redirect to chat
 					$location.path('/chat');
 				} else {
@@ -42,7 +42,7 @@ angular.module('chatApp')
 					}
 				}
 			}).
-			error(function(data, status, headers, config) {
+			error(function() {
 				console.log('Could not send register request');
 			});
 		};

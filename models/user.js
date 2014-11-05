@@ -23,35 +23,35 @@ userSchema.statics.register = function (req, callback) {
 	// TODO: check login and password length
 	async.waterfall([
 		function (callback) { // Check if login is already in use
-			mongoose.model('User').isRegistered(req.body.login, function (err, result) {
+			mongoose.model('User').isRegistered(req.body.login, function (err, isRegistered) {
 				var info = {};
 
 				if (err) {
 					console.log('Could not check if login is already in use');
-				} else if (result) {
+				} else if (isRegistered) {
 					info.msg = 'USER_EXISTS';
 				}
 
-				callback(err, result, info);
+				callback(err, isRegistered, info);
 			});
 		},
 		function (isRegistered, info, callback) { // Register user if it not registered
 			if (!isRegistered) {
-				mongoose.model('User').addUser(req, function (err, result) {
+				mongoose.model('User').addUser(req, function (err, user) {
 					// TODO: Handle error
-					callback(err, result, info);
+					callback(err, user, info);
 				});
 			} else {
 				callback(null, false, info);
 			}
 		}
-	], function (err, result, info) {
+	], function (err, user, info) {
 		if (err) {
 			console.log('Could not complete register sequence');
 			return callback(err);
 		}
 
-		return callback(null, result, info);
+		return callback(null, user, info);
 	});
 };
 
@@ -85,44 +85,41 @@ userSchema.statics.addUser = function(req, callback) {
 
 	userObj.save(function(err, userObj) {
 		if (err) {
-			console.error('Could\'nt add user: ' + err);
+			console.error('Could not add user: ' + err);
 			return callback(err);
 		}
 
-		return callback(null, true);
+		return callback(null, userObj);
 	});
 };
 
-// userSchema.statics.checkUser = function(req, callback) {
-// 	var res = {
-// 		success: false
-// 	};
+userSchema.statics.checkUser = function(login, password, callback) {
+	// Check if such user exists
+	this.findOne({login: login}, function(err, user) {
+		var info = {};
 
-// 	// Check if such user exists
-// 	this.findOne({login: req.body.login}, function(err, doc) {
-// 		if (err) {
-// 			console.error('Could\'nt check if user exists: ' + err);
-// 		} else {
-// 			if (!doc) {
-// 				// Such user aren't exists
-// 				res.msg = 'USER_NOT_EXISTS';
-// 			} else {
-// 				// Check user password
-// 				var hashPassword = crypto.createHash('sha512')
-// 						.update(doc.salt + req.body.password)
-// 						.digest('hex');
+		if (err) {
+			console.error('Could not check if user exists: ' + err);
+		} else {
+			if (!user) {
+				// Such user aren't exists
+				info.msg = 'USER_NOT_EXISTS';
+			} else {
+				// Check user password
+				var hashPassword = crypto.createHash('sha512')
+						.update(user.salt + password)
+						.digest('hex');
 
-// 				if (hashPassword === doc.password) {
-// 					res.success = true;
-// 				} else {
-// 					res.msg = 'PASSWORD_WRONG';
-// 				}
-// 			}
-// 		}
+				if (hashPassword !== user.password) {
+					user = false;
+					info.msg = 'PASSWORD_WRONG';
+				}
+			}
+		}
 
-// 		return callback(err, res);
-// 	});
-// };
+		return callback(err, user, info);
+	});
+};
 
 var User = mongoose.model('User', userSchema);
 

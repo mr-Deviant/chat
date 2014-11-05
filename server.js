@@ -109,7 +109,6 @@ process.on('SIGINT', function() {
 });
 
 var User = require(__dirname + '/models/user');
-var crypto   = require('crypto');
 
 // Serialize users into and the session (save user id)
 passport.serializeUser(function(user, callback) {
@@ -142,114 +141,52 @@ passport.use('login', new LocalStrategy({
 		// Names of username & password fields
 		usernameField: 'login',
 		passwordField: 'password'
-	}, function(login, password, callback) {console.log('login');
-		User.findOne({login: login}, function(err, doc) {
-			if (err) {
-				console.log('Could not check if user exists: ' + err);
-				return callback(err);
-			}
-
-			if (!doc) {
-				return callback(null, false, {msg: 'USER_NOT_EXISTS'});
-			}
-
-			var hashPassword = crypto.createHash('sha512')
-				.update(doc.salt + password)
-				.digest('hex');
-
-			if (doc.password != hashPassword) {
-				return callback(null, false, {msg: 'PASSWORD_WRONG'});
-			}
-
-			return callback(null, doc);
-		});
-		
+	}, function(login, password, callback) {
+		return User.checkUser(login, password, callback);
 	}
 ));
 
-// Perform user registration
-app.post('/register', function (req, res) {
+var handleUserLogin = function(err, user, info, req, res) {
 	var ret = {
 		ok: 0
 	};
 
-	passport.authenticate('register', function(err, user, info) {
-		if (err) {
-			console.log('Could not register user');
+	if (err) {
+		console.log('Could not handle user login: ' + err);
+		res.end(JSON.stringify(ret));
+	} else {
+		if (!user) {
+			if (info && info.msg) { // If error message exists add it into response
+				ret.msg = info.msg;
+			}
 			res.end(JSON.stringify(ret));
 		} else {
-			if (!user) {
-				if (info && info.msg) { // If error message exists add it into response
-					ret.msg = info.msg;
-				}
-				res.end(JSON.stringify(ret));
-			} else {
-				// Perform user login
-				req.logIn(user, function(err) {
-					if (err) {
-						console.log('Could not perform user login');
-					} else {
-						// Everything went well
-						ret.ok = 1;
-					}
-					res.end(JSON.stringify(ret));
-			    });
-			}
 			// Perform user login
-			ret.ok = !!user ? 1 : 0;
-
-			
+			req.logIn(user, function(err) {
+				if (err) {
+					console.log('Could not perform user login: ' + err);
+				} else {
+					// Everything went well
+					ret.ok = !!user ? 1 : 0;
+				}
+		    });
 		}
+	}
+	res.end(JSON.stringify(ret));
+};
+
+// Perform user registration
+app.post('/register', function (req, res) {
+	passport.authenticate('register', function(err, user, info) {
+		handleUserLogin(err, user, info, req, res)
 	})(req, res);
 });
 
 // Perform user login
 app.post('/login', function(req, res) {
-	var ret = {
-		ok: 0
-	};
-
 	passport.authenticate('login', function(err, user, info) {
-		if (err) {
-			console.log('Could not check if user exists: ' + err);
-			res.end(JSON.stringify(ret));
-		} else {
-			if (!user) {
-				// Such user is not exists or password is wrong
-	    		ret.msg = info.msg;
-	    		res.end(JSON.stringify(ret));
-	    	} else {
-	    		req.logIn(user, function(err) {
-					if (err) {
-						console.log('Could not perform user login');
-					} else {
-						// Everything went well
-						ret.ok = 1;
-					}
-
-					res.end(JSON.stringify(ret));
-			    });
-	    	}
-		}
+		handleUserLogin(err, user, info, req, res)
 	})(req, res);
-
-
-
-	// var user = require(__dirname + '/models/user');
-	
-	// try {
-	// 	user.checkUser(req, function(err, result) {
-	// 		res.send(result);
-	// 	});
-	// } catch(err) {
-	// 	console.log('Could not check user: ' + err);
-	// }
-});
-
-app.get('/chat', function(req, res) {
-	console.dir(req.cookies);
-	console.log(req.isAuthenticated());
-	res.end(req.isAuthenticated()+'=-');
 });
 
 app.get('/logout', function(req, res){
