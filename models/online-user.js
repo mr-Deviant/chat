@@ -1,7 +1,12 @@
 var mongoose = require('mongoose');
 
 var onlineUserSchema = mongoose.Schema({
-	userId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'}
+	userId: {
+		type: mongoose.Schema.Types.ObjectId,
+		unique: true,
+		required: true,
+		ref: 'User'
+	}
 });
 
 onlineUserSchema.statics.addUser = function (userIdObj, callback) {
@@ -9,7 +14,7 @@ onlineUserSchema.statics.addUser = function (userIdObj, callback) {
 
 	onlineUserObj.save(function(err) {
 		if (err) {
-			console.error('Could\'nt add online user: ' + err);
+			console.error('Could not add online user: ' + err);
 			return callback(err);
 		}
 
@@ -20,7 +25,7 @@ onlineUserSchema.statics.addUser = function (userIdObj, callback) {
 onlineUserSchema.statics.getUsers = function (callback) {
 	OnlineUser.find({}, function(err, docs) {
 		if (err) {
-			console.error('Could\'nt get online users: ' + err);
+			console.error('Could not get online users: ' + err);
 			return callback(err);
 		}
 		
@@ -31,7 +36,7 @@ onlineUserSchema.statics.getUsers = function (callback) {
 onlineUserSchema.statics.removeUser = function (userIdObj, callback) {
 	OnlineUser.findOneAndRemove({userId: userIdObj}, function(err) {
 		if (err) {
-			console.error('Could\'nt remove online user: ' + err);
+			console.error('Could not remove online user: ' + err);
 			return callback(err);
 		}
 		
@@ -39,5 +44,5 @@ onlineUserSchema.statics.removeUser = function (userIdObj, callback) {
 	});
 };
 
-var OnlineUser = mongoose.model('OnlineUser', onlineUsersSchema);
+var OnlineUser = mongoose.model('OnlineUser', onlineUserSchema);
 module.exports = OnlineUser;

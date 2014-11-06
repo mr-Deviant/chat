@@ -11,7 +11,6 @@ var express        = require('express'),
 	mongoose       = require('mongoose'),
 	MongoStore     = require('connect-mongo')(session),
 	passport       = require('passport'),
-	LocalStrategy  = require('passport-local').Strategy, 
     settings       = {
     	serverHost  : 'localhost',
     	serverPort  : process.env.PORT || 3000,
@@ -72,9 +71,12 @@ app.use(session({
 	saveUninitialized: true,
 	// Forces session to be saved even when unmodified
 	resave: true,
+	// Cookie life time
+	cookie: { maxAge: 24 * 60 * 60 * 1000 },
 	// Use MongoDB instead of MemoryStore for storing sessions
 	store: new MongoStore({
-	    db: settings.dbName
+	    db            : settings.dbName,
+	    clear_interval: 1 * 60 * 60 // seconds
 	})
 }));
 
@@ -82,8 +84,9 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Specify which folder NodeJS won't handle
+// Specify which folders NodeJS won't handle
 app.use(express.static(__dirname + '/app'));
+app.use(express.static(__dirname + '/bower_components'));
 
 // Connect to DB (local connection)
 mongoose.connect('mongodb://' + settings.serverHost + '/' + settings.dbName);
@@ -108,91 +111,14 @@ process.on('SIGINT', function() {
 	});
 });
 
+
 var User = require(__dirname + '/models/user');
 
-// Serialize users into and the session (save user id)
-passport.serializeUser(function(user, callback) {
-	callback(null, user.id);
-});
+require(__dirname + '/passport/passport.js')(User);
 
-// Deserialize users out of the session (find user id)
-passport.deserializeUser(function(id, callback) {
-	User.findById(id, function(err, doc) {
-		if (err) {
-			console.log('Could not deserialize user: ' + err);
-			return callback(err);
-		}
+require(__dirname + '/routes/routes.js')(app);
 
-		callback(null, doc);
-	});
-});
-
-passport.use('register', new LocalStrategy({
-		usernameField: 'login',
-		passwordField: 'password',
-		passReqToCallback: true
-	}, function(req, login, password, callback) {
-		return User.register(req, callback);
-	}
-));
-
-// Passport login verify function
-passport.use('login', new LocalStrategy({
-		// Names of username & password fields
-		usernameField: 'login',
-		passwordField: 'password'
-	}, function(login, password, callback) {
-		return User.checkUser(login, password, callback);
-	}
-));
-
-var handleUserLogin = function(err, user, info, req, res) {
-	var ret = {
-		ok: 0
-	};
-
-	if (err) {
-		console.log('Could not handle user login: ' + err);
-		res.end(JSON.stringify(ret));
-	} else {
-		if (!user) {
-			if (info && info.msg) { // If error message exists add it into response
-				ret.msg = info.msg;
-			}
-			res.end(JSON.stringify(ret));
-		} else {
-			// Perform user login
-			req.logIn(user, function(err) {
-				if (err) {
-					console.log('Could not perform user login: ' + err);
-				} else {
-					// Everything went well
-					ret.ok = !!user ? 1 : 0;
-				}
-		    });
-		}
-	}
-	res.end(JSON.stringify(ret));
-};
-
-// Perform user registration
-app.post('/register', function (req, res) {
-	passport.authenticate('register', function(err, user, info) {
-		handleUserLogin(err, user, info, req, res)
-	})(req, res);
-});
-
-// Perform user login
-app.post('/login', function(req, res) {
-	passport.authenticate('login', function(err, user, info) {
-		handleUserLogin(err, user, info, req, res)
-	})(req, res);
-});
-
-app.get('/logout', function(req, res){
-	req.logout();
-	res.end(JSON.stringify({'ok': 1}));
-});
+var OnlineUser = require(__dirname + '/models/online-user');
 
 io.on('connect', function(socket) {
 	console.log('server: socket connected');
@@ -200,7 +126,7 @@ io.on('connect', function(socket) {
 	// Store user in table of online users
 	var onlineUser = require(__dirname + '/models/online-user');
 	//onlineUser.addUser(XXX);
-
+//req.session.userId
 	
 
 	socket.emit('message', { message: 'welcome to the chat' });
@@ -212,7 +138,7 @@ io.on('connect', function(socket) {
 
 io.on('disconnect', function() {
 	// Delete user from table of online users
-	var onlineUser = require(__dirname + '/models/online-user');
+	//var onlineUser = require(__dirname + '/models/online-user');
 	//onlineUser.removeUser(XXX);
 });
 

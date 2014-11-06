@@ -1,6 +1,8 @@
-var mongoose = require('mongoose'),
-	async    = require('async'),
-	crypto   = require('crypto');
+var mongoose     = require('mongoose'),
+	async        = require('async'),
+	crypto       = require('crypto'),
+	events       = require('events'),
+	eventEmitter = new events.EventEmitter();
 
 var userSchema = mongoose.Schema({
 	login: {
@@ -14,7 +16,7 @@ var userSchema = mongoose.Schema({
 	},
 	salt: String,
 	email: String,
-	gender: Boolean,
+	gender: Boolean, // 1 - male, 0 - female
 	registerDate: String,
 	ip: String
 });
@@ -87,15 +89,22 @@ userSchema.statics.addUser = function(req, callback) {
 		if (err) {
 			console.error('Could not add user: ' + err);
 			return callback(err);
+		} else {
+			// Fire add user event
+			eventEmitter.emit('register');
+			console.log('register');
+
+			// Save user id in session
+			//req.session.userId = user.id;
 		}
 
 		return callback(null, userObj);
 	});
 };
 
-userSchema.statics.checkUser = function(login, password, callback) {
+userSchema.statics.checkUser = function(req, callback) {
 	// Check if such user exists
-	this.findOne({login: login}, function(err, user) {
+	this.findOne({login: req.body.login}, function(err, user) {
 		var info = {};
 
 		if (err) {
@@ -107,12 +116,19 @@ userSchema.statics.checkUser = function(login, password, callback) {
 			} else {
 				// Check user password
 				var hashPassword = crypto.createHash('sha512')
-						.update(user.salt + password)
+						.update(user.salt + req.body.password)
 						.digest('hex');
 
 				if (hashPassword !== user.password) {
 					user = false;
 					info.msg = 'PASSWORD_WRONG';
+				} else {
+					// Fire add user event
+					eventEmitter.emit('login');
+					console.log('login');
+
+					// Save user id in session
+					//req.session.userId = user.id;
 				}
 			}
 		}

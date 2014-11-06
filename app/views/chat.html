@@ -13,28 +13,27 @@ body,
 }
 </style>
 <script>
-	// var socket = io('http://localhost:3000');
+	var socket = io('http://localhost:3000');
 
-	// socket.on('connect', function() {
-	// 	console.log('connected');
-	// });
+	socket.on('connect', function() {
+		console.log('connected');
+	});
 
-	// socket.on('disconnect', function() {
-	// 	console.log('disconnected');
-	// });
+	socket.on('disconnect', function() {
+		console.log('disconnected');
+	});
 
-	// socket.on('message', function (data) {
-	// 	if (data.message) {
-	// 		alert(data.message);
-	// 	}
-	// });
+	socket.on('message', function (data) {
+		if (data.message) {
+			alert(data.message);
+		}
+	});
 
-	// $(document).ready(function() {
-	// 	$('#send').click(function() {
-	// 		socket.emit('send', {message: $('#message').val()});
-	// 	});
-	// });
-	//});
+	$(document).ready(function() {
+		$('#send').click(function() {
+			socket.emit('send', {message: $('#message').val()});
+		});
+	});
 </script>
 <a href="#" data-ng-click="logout();">Logout</a>
 <div class="row" style="height: 100%; position: relative;">
@@ -42,7 +41,7 @@ body,
 		Public
 	</div>
 	<div class="col-xs-3" id="online-users-list" style="background-color: silver; float: right; width: 25%;">
-		List
+		<a href="#">Все учасники</a><br>
 	</div>
 	<div class="col-xs-9" style="height: 70px; position: absolute; bottom: 0; left: 0;">
 		<textarea id="message" name="message" data-ng-model="message" style="height: 50px; width: 100%;"></textarea><br>
